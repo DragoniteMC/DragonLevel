@@ -1,0 +1,40 @@
+package org.dragonitemc.level.command.leveladmin;
+
+import com.ericlam.mc.eld.annotations.CommandArg;
+import com.ericlam.mc.eld.annotations.Commander;
+import com.ericlam.mc.eld.bukkit.CommandNode;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.command.CommandSender;
+import org.dragonitemc.level.api.AsyncLevelService;
+import org.dragonitemc.level.config.DragonLevelMessage;
+
+import javax.inject.Inject;
+
+@Commander(
+        name = "removeexp",
+        description = "減少玩家經驗值",
+        permission = "dragonlevel.admin"
+)
+public class RemoveExpCommand implements CommandNode {
+
+    @Inject
+    private DragonLevelMessage message;
+
+    @Inject
+    private AsyncLevelService levelService;
+
+    @CommandArg(order = 1, labels = "玩家")
+    private OfflinePlayer player;
+
+    @CommandArg(order = 2, labels = "經驗值")
+    private double exp;
+
+    @Override
+    public void execute(CommandSender sender) {
+
+        levelService.removeExp(player.getUniqueId(), exp)
+                .thenRunSync(result -> sender.sendMessage(message.getResultMessage(result)))
+                .joinWithCatch(ex -> sender.sendMessage(message.getErrorMessage(ex)));
+
+    }
+}

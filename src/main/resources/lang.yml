@@ -1,0 +1,10 @@
+prefix: "&dDragonLevel// &7"
+no-player-arg-in-console: "you must specify a player in the console"
+level: "&e{0}''s Level: &6{1}"
+operation-success: "operation successful"
+operation-failed: "operation failed: {0}"
+result:
+  PLAYER_NOT_EXIST: "&cplayer does not exist"
+  SUCCESS: "&aoperation successful"
+  UNKNOWN_ERROR: "&cunknown error:"
+  ERROR: "&coperation failed: {0}"

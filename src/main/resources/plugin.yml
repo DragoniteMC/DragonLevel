@@ -1,0 +1,6 @@
+name: DragonLevel
+main: org.dragonitemc.level.DragonLevel
+version: ${project.version}
+author: Xiang
+depend:
+  - ELDependenci-SQL
