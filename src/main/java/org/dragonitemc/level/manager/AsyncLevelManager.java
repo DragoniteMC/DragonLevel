@@ -26,7 +26,7 @@ public class AsyncLevelManager implements AsyncLevelService {
     }
 
     @Override
-    public ScheduleService.BukkitPromise<Double> getExp(UUID player) {
+    public ScheduleService.BukkitPromise<Integer> getExp(UUID player) {
         return scheduleService.callAsync(dragonlevel, () -> levelService.getExp(player));
     }
 
@@ -46,17 +46,32 @@ public class AsyncLevelManager implements AsyncLevelService {
     }
 
     @Override
-    public ScheduleService.BukkitPromise<UpdateResult> setExp(UUID player, double exp) {
+    public ScheduleService.BukkitPromise<UpdateResult> setExp(UUID player, int exp) {
         return scheduleService.callAsync(dragonlevel, () -> levelService.setExp(player, exp));
     }
 
     @Override
-    public ScheduleService.BukkitPromise<UpdateResult> addExp(UUID player, double exp) {
+    public ScheduleService.BukkitPromise<UpdateResult> addExp(UUID player, int exp) {
         return scheduleService.callAsync(dragonlevel, () -> levelService.addExp(player, exp));
     }
 
     @Override
-    public ScheduleService.BukkitPromise<UpdateResult> removeExp(UUID player, double exp) {
+    public ScheduleService.BukkitPromise<UpdateResult> removeExp(UUID player, int exp) {
         return scheduleService.callAsync(dragonlevel, () -> levelService.removeExp(player, exp));
+    }
+
+    @Override
+    public String getEmptyProgressBar() {
+        return levelService.getEmptyProgressBar();
+    }
+
+    @Override
+    public String getProgressBar(UUID player) {
+        return levelService.getProgressBar(player);
+    }
+
+    @Override
+    public int getProgressPercentage(UUID player) {
+        return levelService.getProgressPercentage(player);
     }
 }

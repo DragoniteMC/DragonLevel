@@ -3,10 +3,11 @@ package org.dragonitemc.level.command;
 import com.ericlam.mc.eld.annotations.CommandArg;
 import com.ericlam.mc.eld.annotations.Commander;
 import com.ericlam.mc.eld.bukkit.CommandNode;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
-import org.dragonitemc.level.api.AsyncLevelService;
+import org.dragonitemc.level.api.LevelService;
 import org.dragonitemc.level.config.DragonLevelMessage;
 
 import javax.inject.Inject;
@@ -22,7 +23,7 @@ public class LevelCommand implements CommandNode {
     private DragonLevelMessage message;
 
     @Inject
-    private AsyncLevelService levelService;
+    private LevelService levelService;
 
     @CommandArg(order = 1, optional = true, labels = "玩家名稱")
     private OfflinePlayer player;
@@ -37,8 +38,13 @@ public class LevelCommand implements CommandNode {
             player = (OfflinePlayer) sender;
         }
 
-        levelService.getLevel(player.getUniqueId())
-                .thenRunSync(level -> sender.sendMessage(message.getLang().get("level", player.getName(), level)))
-                .joinWithCatch(ex -> sender.sendMessage(message.getErrorMessage(ex)));
+        message.getLang().getPureList("level.stats").forEach(message -> {
+            sender.sendMessage(MiniMessage.miniMessage().deserialize(
+                    message.replace("{LEVEL}", String.valueOf(levelService.getLevel(player.getUniqueId())))
+                           .replace("{EXP}", String.valueOf(levelService.getExp(player.getUniqueId())))
+                           .replace("{PROGRESS}", levelService.getProgressBar(player.getUniqueId()))
+                           .replace("{PERCENT}", String.valueOf(levelService.getProgressPercentage(player.getUniqueId())))
+            ));
+        });
     }
 }

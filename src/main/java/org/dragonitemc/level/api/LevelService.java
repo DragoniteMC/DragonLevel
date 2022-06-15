@@ -6,7 +6,7 @@ public interface LevelService {
 
     int getLevel(UUID player);
 
-    double getExp(UUID player);
+    int getExp(UUID player);
 
     UpdateResult setLevel(UUID player, int level);
 
@@ -14,10 +14,16 @@ public interface LevelService {
 
     UpdateResult removeLevel(UUID player, int level);
 
-    UpdateResult setExp(UUID player, double exp);
+    UpdateResult setExp(UUID player, int exp);
 
-    UpdateResult addExp(UUID player, double exp);
+    UpdateResult addExp(UUID player, int exp);
 
-    UpdateResult removeExp(UUID player, double exp);
+    UpdateResult removeExp(UUID player, int exp);
+
+    String getEmptyProgressBar();
+
+    String getProgressBar(UUID player);
+
+    int getProgressPercentage(UUID player);
 
 }

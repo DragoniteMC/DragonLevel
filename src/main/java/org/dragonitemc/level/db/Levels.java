@@ -24,7 +24,7 @@ public class Levels {
     private int level;
 
     @Column
-    private double exp;
+    private int exp;
 
     public UUID getId() {
         return id;
@@ -50,11 +50,11 @@ public class Levels {
         this.level = level;
     }
 
-    public double getExp() {
+    public int getExp() {
         return exp;
     }
 
-    public void setExp(double exp) {
+    public void setExp(int exp) {
         this.exp = exp;
     }
 }

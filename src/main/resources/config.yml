@@ -1,2 +1,9 @@
 defaultLevel: 1
-defaultExp: 0.0
+defaultExp: 0
+
+maxLevel: 50
+
+progressBar:
+  amount: 15
+  complete: "&3■"
+  incomplete: "&7■"

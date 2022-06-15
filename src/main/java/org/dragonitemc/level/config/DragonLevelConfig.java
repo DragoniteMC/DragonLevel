@@ -8,6 +8,20 @@ public class DragonLevelConfig extends Configuration {
 
     public int defaultLevel;
 
-    public double defaultExp;
+    public int defaultExp;
+
+    public int maxLevel;
+
+    public ProgressBar progressBar;
+
+    public static class ProgressBar {
+
+        public int amount;
+
+        public String complete;
+
+        public String incomplete;
+
+    }
 
 }

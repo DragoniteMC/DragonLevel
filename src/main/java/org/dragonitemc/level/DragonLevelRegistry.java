@@ -8,6 +8,9 @@ import org.bukkit.event.Listener;
 import org.dragonitemc.level.command.LevelAdminCommand;
 import org.dragonitemc.level.command.LevelCommand;
 import org.dragonitemc.level.command.leveladmin.*;
+import org.dragonitemc.level.listener.DragonLevelListener;
+
+import java.util.List;
 
 public class DragonLevelRegistry implements ComponentsRegistry {
 
@@ -17,6 +20,8 @@ public class DragonLevelRegistry implements ComponentsRegistry {
         commandRegistry.command(LevelCommand.class);
 
         commandRegistry.command(LevelAdminCommand.class, sub -> {
+
+            sub.command(ReloadCommand.class);
 
             sub.command(AddExpCommand.class);
 
@@ -36,6 +41,8 @@ public class DragonLevelRegistry implements ComponentsRegistry {
 
     @Override
     public void registerListeners(ListenerRegistry<Listener> listenerRegistry) {
+
+        listenerRegistry.listeners(List.of(DragonLevelListener.class));
 
     }
 }
