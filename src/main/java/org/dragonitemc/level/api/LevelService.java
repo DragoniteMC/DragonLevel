@@ -20,8 +20,6 @@ public interface LevelService {
 
     UpdateResult removeExp(UUID player, int exp);
 
-    String getEmptyProgressBar();
-
     String getProgressBar(UUID player);
 
     int getProgressPercentage(UUID player);

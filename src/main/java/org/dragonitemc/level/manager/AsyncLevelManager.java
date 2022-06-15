@@ -60,4 +60,13 @@ public class AsyncLevelManager implements AsyncLevelService {
         return scheduleService.callAsync(dragonlevel, () -> levelService.removeExp(player, exp));
     }
 
+    @Override
+    public String getProgressBar(UUID player) {
+        return levelService.getProgressBar(player);
+    }
+
+    @Override
+    public int getProgressPercentage(UUID player) {
+        return levelService.getProgressPercentage(player);
+    }
 }

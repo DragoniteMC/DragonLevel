@@ -1,11 +1,10 @@
 package org.dragonitemc.level.manager;
 
-import com.dragonite.mc.dnmc.core.main.DragoniteMC;
-import com.dragonite.mc.dnmc.core.managers.RedisDataSource;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.dragonitemc.level.api.LevelExpChangeEvent;
 import org.dragonitemc.level.api.LevelService;
 import org.dragonitemc.level.api.UpdateResult;
 import org.dragonitemc.level.config.DragonLevelConfig;
@@ -15,13 +14,10 @@ import org.dragonitemc.level.db.Levels;
 import org.dragonitemc.level.repository.LevelRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.clients.jedis.Jedis;
 
 import javax.inject.Inject;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class LevelManager implements LevelService {
 
@@ -57,13 +53,18 @@ public class LevelManager implements LevelService {
         }
         level = Math.max(1, Math.min(config.maxLevel, level));
         int oldLevel = user.getLevel();
+        int oldExp = user.getExp();
         user.setLevel(level);
         int exp = data.Levels.get(String.valueOf(level));
         user.setExp(exp);
         levelRepository.save(user);
         if (level > oldLevel) {
-            Bukkit.getPlayer(player).sendMessage("§a你的等级提升到了" + level + "级");
+            sendLevelUpMessage(Bukkit.getPlayer(player), level, data.Levels.get(String.valueOf(level + 1)) - user.getExp());
+        } else {
+            sendLevelDownMessage(Bukkit.getPlayer(player), level, data.Levels.get(String.valueOf(level + 1)) - user.getExp());
         }
+        LevelExpChangeEvent levelExpChangeEvent = new LevelExpChangeEvent(Bukkit.getPlayer(player), oldLevel, level, oldExp, user.getExp());
+        Bukkit.getPluginManager().callEvent(levelExpChangeEvent);
         return UpdateResult.SUCCESS;
     }
 
@@ -74,17 +75,22 @@ public class LevelManager implements LevelService {
             return UpdateResult.PLAYER_NOT_EXIST;
         }
         if (level != 0) {
+            int oldLevel = user.getLevel();
+            int oldExp = user.getExp();
             int newLevel = Math.max(1, Math.min(config.maxLevel, user.getLevel() + level));
-            if (newLevel != user.getLevel()) {
-                int oldLevel = user.getLevel();
+            if (newLevel != oldLevel) {
                 user.setLevel(newLevel);
-                user.setExp(data.Levels.get(String.valueOf(oldLevel)));
+                user.setExp(data.Levels.get(String.valueOf(newLevel)));
                 if (newLevel > oldLevel) {
                     sendLevelUpMessage(Bukkit.getPlayer(player), newLevel, data.Levels.get(String.valueOf(newLevel + 1)) - user.getExp());
+                } else {
+                    sendLevelDownMessage(Bukkit.getPlayer(player), newLevel, data.Levels.get(String.valueOf(newLevel + 1)) - user.getExp());
                 }
+                LevelExpChangeEvent levelExpChangeEvent = new LevelExpChangeEvent(Bukkit.getPlayer(player), oldLevel, newLevel, oldExp, user.getExp());
+                Bukkit.getPluginManager().callEvent(levelExpChangeEvent);
+                levelRepository.save(user);
             }
         }
-        levelRepository.save(user);
         return UpdateResult.SUCCESS;
     }
 
@@ -100,18 +106,23 @@ public class LevelManager implements LevelService {
         if (user == null) {
             return UpdateResult.PLAYER_NOT_EXIST;
         }
-        if (user.getExp() != exp) {
+        int oldExp = user.getExp();
+        if (oldExp != exp) {
             user.setExp(exp);
-            int newLevel = calculateNewLevel(Integer.parseInt(String.valueOf(exp)));
+            int newLevel = calculateNewLevel(exp);
             if (user.getLevel() != newLevel) {
                 int oldLevel = user.getLevel();
                 user.setLevel(newLevel);
                 if (newLevel > oldLevel) {
                     sendLevelUpMessage(Bukkit.getPlayer(player), newLevel, data.Levels.get(String.valueOf(newLevel + 1)) - user.getExp());
+                } else {
+                    sendLevelDownMessage(Bukkit.getPlayer(player), newLevel, data.Levels.get(String.valueOf(newLevel + 1)) - user.getExp());
                 }
+                LevelExpChangeEvent levelExpChangeEvent = new LevelExpChangeEvent(Bukkit.getPlayer(player), oldLevel, newLevel, oldExp, user.getExp());
+                Bukkit.getPluginManager().callEvent(levelExpChangeEvent);
+                levelRepository.save(user);
             }
         }
-        levelRepository.save(user);
         return UpdateResult.SUCCESS;
     }
 
@@ -144,7 +155,11 @@ public class LevelManager implements LevelService {
                             user.setLevel(newLevel);
                             if (newLevel > oldLevel) {
                                 sendLevelUpMessage(Bukkit.getPlayer(player), newLevel, data.Levels.get(String.valueOf(newLevel + 1)) - newExp);
+                            } else {
+                                sendLevelDownMessage(Bukkit.getPlayer(player), newLevel, data.Levels.get(String.valueOf(newLevel + 1)) - newExp);
                             }
+                            LevelExpChangeEvent levelExpChangeEvent = new LevelExpChangeEvent(Bukkit.getPlayer(player), oldLevel, newLevel, oldExp, newExp);
+                            Bukkit.getPluginManager().callEvent(levelExpChangeEvent);
                         }
                     }
                 }
@@ -161,15 +176,17 @@ public class LevelManager implements LevelService {
                         if (newLevel != user.getLevel()) {
                             int oldLevel = user.getLevel();
                             user.setLevel(newLevel);
-                            if (newLevel > oldLevel) {
+                            if (newLevel < oldLevel) {
                                 sendLevelDownMessage(Bukkit.getPlayer(player), newLevel, data.Levels.get(String.valueOf(newLevel + 1)) - newExp);
                             }
+                            LevelExpChangeEvent levelExpChangeEvent = new LevelExpChangeEvent(Bukkit.getPlayer(player), oldLevel, newLevel, oldExp, newExp);
+                            Bukkit.getPluginManager().callEvent(levelExpChangeEvent);
                         }
                     }
                 }
             }
+            levelRepository.save(user);
         }
-        levelRepository.save(user);
         return UpdateResult.SUCCESS;
     }
 
@@ -209,8 +226,7 @@ public class LevelManager implements LevelService {
         );
     }
 
-    @Override
-    public String getEmptyProgressBar() {
+    private String getEmptyProgressBar() {
         StringBuilder progressBar = new StringBuilder();
         for (int i = 0; i < config.progressBar.amount; i++) {
             progressBar.append(config.progressBar.incomplete);
