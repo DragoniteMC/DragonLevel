@@ -39,8 +39,12 @@ public class DragonLevelListener implements Listener {
                 return level;
             });
 
+            if (user.getId().equals(player.getUniqueId())) {
+                return;
+            }
+
             levelRepository.save(user);
-            dragonlevel.getLogger().info("Saved user " + user + " to database");
+            dragonlevel.getLogger().info("Saved user " + user.getId() + " to database");
 
         }).joinWithCatch(ex -> {
             dragonlevel.getLogger().warning(ex.getMessage());
